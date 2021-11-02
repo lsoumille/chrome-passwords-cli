@@ -10,11 +10,6 @@ try:
   from urlparse import urlparse
 except ImportError:
   from urllib.parse import urlparse
-import percol
-import percol.cli
-import percol.action
-import percol.actions
-import pyperclip
 from Crypto.Cipher import AES
 import hashlib
 import keyring
@@ -52,16 +47,15 @@ def main(query, profile):
   passwords = []
   password2id = []
 
-  def candidates():
-    with tempfile.NamedTemporaryFile() as tmp:
-      with open(os.path.join(HOME, CHROME, profile, LOGIN_DATA), 'rb') as f:
-        tmp.write(f.read())
-        tmp.flush()
-      cursor = sqlite3.connect(tmp.name).cursor()
-      cursor.execute('''SELECT origin_url, username_value, password_value
+  with tempfile.NamedTemporaryFile() as tmp:
+    with open(os.path.join(HOME, CHROME, profile, LOGIN_DATA), 'rb') as f:
+      tmp.write(f.read())
+      tmp.flush()
+    cursor = sqlite3.connect(tmp.name).cursor()
+    cursor.execute('''SELECT origin_url, username_value, password_value
                         FROM logins ORDER BY times_used desc''')
-      accounts = []
-      for i, (origin_url, account, password) in enumerate(cursor.fetchall()):
+    accounts = []
+    for i, (origin_url, account, password) in enumerate(cursor.fetchall()):
         password = base64.b64encode(password[3:]).decode('utf8')
         url = urlparse(origin_url)
         title = codecs.decode(url.netloc.encode('utf8'), 'idna')
@@ -71,22 +65,16 @@ def main(query, profile):
           title = '%s://%s' % (url.scheme, title.split('@')[1])
         accounts.append((title, account))
         passwords.append(password)
+    
+  for key, _ in collections.Counter(passwords).most_common():
+    password2id.append(key)
 
-    for key, _ in collections.Counter(passwords).most_common():
-      password2id.append(key)
-
+  with open('data.txt', 'w') as f:
     for i, (title, account) in enumerate(accounts):
-      pass_id = password2id.index(passwords[i])
-      yield '{:>50} {:<40}   {:0>3d} '.format(title, account, pass_id)
-
-  @percol.action.action()
-  def copy(lines, percol):
-    pyperclip.copy(decrypt(password2id[int(lines[0].split()[-1])]))
-
-  with percol.Percol(actions=[copy], candidates=candidates(), query=query) as p:
-    percol.cli.load_rc(p)
-    exit_code = p.loop()
-  exit(exit_code)
+      
+      decrypted = decrypt(passwords[i])
+      if decrypted is not None and decrypted != '' and account is not None and account != '':
+        f.write(title + "|||" + account + "|||" + decrypted + "\n")
 
 
 if __name__ == '__main__':
