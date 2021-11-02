@@ -15,8 +15,7 @@ setup(
   keywords='chrome password',
   license='MIT',
   install_requires=[
-    'percol >= 0.2.1',
-    'pyperclip >= 1.6.4',
-    'keyring >= 13.2.1',
+    'pycryptodome',
+    'keyring >= 13.2.1'
   ]
 )
