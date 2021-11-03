@@ -11,7 +11,7 @@ setup(
   author_email='pip@dmit.ro',
   url='https://github.com/sadovnychyi/chrome-passwords-cli',
   description='Access your Chrome passwords from CLI.',
-  scripts=['pass'],
+  scripts=['pass.py'],
   keywords='chrome password',
   license='MIT',
   install_requires=[
