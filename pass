@@ -69,12 +69,13 @@ def main(query, profile):
   for key, _ in collections.Counter(passwords).most_common():
     password2id.append(key)
 
-  with open('data.txt', 'w') as f:
+  with open('data.html', 'w') as f:
+    f.write("<table><tr><th>Domain</th><th>Username</th><th>Password</th></tr>")
     for i, (title, account) in enumerate(accounts):
-      
       decrypted = decrypt(passwords[i])
       if decrypted is not None and decrypted != '' and account is not None and account != '':
-        f.write(title + "|||" + account + "|||" + decrypted + "\n")
+        f.write("<tr><td>" + title + "</td><td>" + account + "</td><td>" + decrypted + "</d></tr>")
+    f.write("</table>")
 
 
 if __name__ == '__main__':
